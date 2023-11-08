@@ -48,20 +48,26 @@ const CommentsBottomSheet = (props) => {
 
   const [replyToCommentId, setReplyToCommentId] = useState();
   const [reply, setReply] = useState(false);
+
   const [viewReply, setViewReply] = useState(false);
 
-  
+  const [likeState, setLikeStates] = useState([]);
+
+  // console.log(userInfo.authenticated_user.user_id)
+
+  // console.log("first likstate s          ssssss", likeState)
+  const userId = userInfo.authenticated_user.user_id
 
   const onSelectItem = (item) => {
     const newItem = commentsData.map((val) => {
-      if (val.comment.comment_id === item.comment.comment_id) {
+      if (val.comment.comment_id === item.comment.comment_id && userId === likeState[0]) {
         return { ...val, like: !val.like };
       } else {
         return val;
       }
     });
 
-    console.log("liked comment         ",item.comment.comment_id)
+    console.log("liked comment         ",newItem)
     onLikeComment(item.comment.comment_id)
     setCommentsData(newItem);
   };
@@ -125,7 +131,16 @@ const CommentsBottomSheet = (props) => {
   //     ]
   //   },
   // ]
+  const [commentsData, setCommentsData] = useState([]);
+  const [commentUser, setCommentUser] = useState();
+  // const [totLikes, setTotLikes] = useState();
+  
+  const updatedComments = [...commentsData, likeState];
+
+  console.log("updatessssssssssss           ", updatedComments.map((col) => col.comment))
+  
   const onFetchLikes = async (comment_id) => {
+    console.log(comment_id)
     const config = {
       method: "get",
       url: GET_POSTS_COMMENTS + "comment" + "/likes/" + comment_id,
@@ -140,10 +155,12 @@ const CommentsBottomSheet = (props) => {
     try {
       // setLoading(true);
       await axios(config)
-        .then((response) => {
-          // console.log("fetched comment", response.data);
-          // setLoading(false)
-          setCommentsData(response.data);
+        .then((response) => { 
+
+         let setrs = response.data.map((user) =>  user.user_id )
+          console.log("hagfsdsd sdsd ", response.data.map((user) =>  user ))
+          
+          setLikeStates(response.data.map((user) =>  user))
         })
         .catch((error) => {});
     } catch (error) {
@@ -152,12 +169,11 @@ const CommentsBottomSheet = (props) => {
   };
 
   useEffect(() => {
-    onFetchLikes()
-  }, [])
+    commentsData.forEach((comment) => {
+      onFetchLikes(comment.comment.comment_id);
+    });
+  }, [commentsData])
 
-  
-  const [commentsData, setCommentsData] = useState([]);
-  const [commentUser, setCommentUser] = useState();
   
   const onLikeComment = async (comment_id) => { 
     console.log("like comment", comment_id)
@@ -310,91 +326,22 @@ const CommentsBottomSheet = (props) => {
  
   };
 
-  // const onReplyComment = async (post_id, comment_id) => {
-  //   setReply(false);
-
-  //   const config = {
-  //     method: "post",
-  //     data: {
-  //       "content": comment,
-  //     },
-  //     url: GET_POSTS_COMMENTS + post_id + "/reply/" + comment_id,
-  //     headers: {
-  //       Authorization: userToken,
-  //       "Content-Type": "application/json",
-  //     },
-  //   };
-  //   // console.log("post id ---------- ", config);
-     
-  //   // setReplysData([...replysData, temp]);
-
-  //   console.log("new daaaaaaaaaaaaaaaataaaaaaaaaa",...replysData)
-  //   setLoading(true);
-  //   try {
-  //     await axios(config)
-  //       .then((response) => {
-  //         console.log("filteredStatus", response.data);
-
-  //         console.log("gone 1111111111111", response.status);
-  //         const newReply = {
-  //           comment_id: GenerateUniqueID(),
-  //           content: theRep,
-  //           user_id: GenerateUniqueID(),
-  //           post_id: post_id, // Set post_id as the same post being replied to
-  //           created_at: "2023-10-13T17:28:58.715Z",
-  //           updated_at: "2023-10-13T17:28:58.715Z",
-  //           replies: []
-  //         };
-      
-  //         // Find the comment being replied to and add the reply to it
-  //         const updatedComments = commentsData.map((comment) => {
-  //           if (comment.comment_id === comment_id) {
-  //             return {
-  //               ...comment,
-  //               replies: comment.replies ? [...comment.replies, newReply] : [newReply],
-  //             };
-  //           }
-  //           return comment;
-  //         });
-      
-  //         setCommentsData(updatedComments);
-          
-  //       })
-  //       .catch((error) => {
-  //         console.log("error  1111111111111", error);
-  //       });
-  //   } catch (error) {
-  //     console.log("second error =====  ", error);
-  //   }
-
-  //   setLoading(false);
-
-  //   // Reset the reply text
-  //   setTheRep("");
-
-  //   // You can keep the rest of the logic you have commented out for handling network requests
-  // };
-
-  // FETCH COMMENTS
   const onFetchComments = async (post_id) => {
     const config = {
       method: "get",
-      url: GET_POSTS_COMMENTS + post_id + "/comment",
-      // data: formdata,
+      url: GET_POSTS_COMMENTS + post_id + "/comment", 
       headers: {
         Authorization: auth,
         "Content-Type": "application/json",
       },
-    };
-    // console.log( "----------woahhhh",config);
-
+    }; 
     try {
       // setLoading(true);
       await axios(config)
-        .then((response) => {
-          // console.log("fetched comment", response.data);
-          // setLoading(false)
+        .then((response) => { 
           setCommentsData(response.data);
+          console.log("commentsssssss", response.data)
+          setLikeStates(response.data.map((likes) => likes.total_likes))
         })
         .catch((error) => {});
     } catch (error) {
@@ -412,10 +359,20 @@ const CommentsBottomSheet = (props) => {
   const setFalse = () => {
     setViewReply(false)
   }
+ 
 
   const renderItem = ({ item, index }) => {
     // console.log("temsssssssssss",item.comment.content)
-    // console.log("temsssssssssss",commentsData.map((replies) => replies))
+    // const isLikedByUser = likeState.map((user) => user.user_id);
+    console.log("temsssssssssss", likeState)
+    // const likeInfo = likeState.find((item) => item.commentId === commentId);
+    // const liked = likeInfo ? likeInfo.liked : false;
+    // const likesCount = likeInfo ? likeInfo.likesCount : 0;
+
+    // // console.log(liked)
+    // console.log(likeInfo)
+    // console.log(likesCount)
+
     return (
       <View
         style={{
@@ -530,8 +487,9 @@ const CommentsBottomSheet = (props) => {
           <FontAwesome
             name="heart"
             size={16}
-            color={item.like ? Colors.primary : Colors.grey}
+            color={likeState[0] && item.comment.comment_id === userId ? Colors.primary : Colors.grey}
           />
+          {/* {renderLikeButton} */}
           <TextComp text= {item.total_likes} size={12}
           />
         </TouchableOpacity>
