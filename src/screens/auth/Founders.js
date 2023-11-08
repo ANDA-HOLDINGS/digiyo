@@ -1,5 +1,5 @@
-import { View, Text, Image, KeyboardAvoidingView, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
-import React, { useContext } from 'react'
+import { View, Text, Image, KeyboardAvoidingView, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native'
+import React, { useContext, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { useNavigation } from '@react-navigation/native'
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -8,13 +8,21 @@ import { PRIMARY_COLOR } from '../../constants/colors';
 
 import Logo from '../../../assets/icons/logo-black.svg'
 import ThemeContext from '../../theme/ThemeContext';
+import JoinFoundersPaymentScreen from '../foundersclubscreen/JoinFoundersClubPayment/joinFoundersPaymentScreen';
+import { JOIN_FOUNDERS } from '../../config/urls';
+import axios from 'axios';
 
 
-export default function FoundersScreen() {
+export default function FoundersScreen({ route }) {
+
+    const { item } = route.params
     const navigation = useNavigation();
 
+    const [ open, setOpen ] = useState(false)
+    
     const theme = useContext(ThemeContext)
-
+    
+    
   return (
     <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -67,9 +75,10 @@ export default function FoundersScreen() {
                             style={[styles.input, {backgroundColor:PRIMARY_COLOR,}]} 
                             entering={FadeInDown.delay(400).duration(1000).springify()}>
 
-                            <TouchableOpacity onPress={() => navigation.push("SignupScreen")}
+                            <TouchableOpacity onPress={() => navigation.push("joinFoundersPaymentScreen", {item: item})
+                            }
                             style={[ ]}
-                            >
+                            > 
                                 <Text 
                                 style={{fontSize: 20, fontWeight:"bold", color:"white", textAlign:"center"}}
                                 >Join</Text>

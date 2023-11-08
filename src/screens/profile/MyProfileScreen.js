@@ -1,43 +1,118 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Text, View, TouchableOpacity, Image, StyleSheet, Switch, Pressable } from "react-native";
-// import { Fonts } from "../constants/styles";
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import AwesomeButton from "react-native-really-awesome-button";
-import MyStatusBar from "../../components/MyStatusBar";
-import SaveListTab from "../../components/saveListTab";
+import React, { useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  ListRenderItem,
+  FlatList,
+  ScrollView,
+} from "react-native";
+import { Tabs } from "react-native-collapsible-tab-view";
 import VideoTab from "../../components/videoTab";
-import { Colors, Default, Fonts } from "../../constants/styles2";
-import { useTranslation } from "react-i18next";
+import { WIDTH } from "../../constants/sizes";
+import { Image } from "react-native";
+import { Text } from "react-native";
+import { TouchableOpacity } from "react-native";
+import { Fontisto } from "@expo/vector-icons";
+import { useEffect } from "react";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { useState } from "react";
+import { useContext } from "react"; 
+import { myProifile } from "../../redux/actions/auth";
 import ThemeContext from "../../theme/ThemeContext";
-import { HEIGHT, WIDTH } from "../../constants/sizes";
-import { ACCENT_COLOR, PRIMARY_COLOR } from "../../constants/colors";
-
-import ShareSvg from '../../../assets/icons/share.svg'
-import EditSvg from '../../../assets/icons/edit.svg'
+import { RefreshControl } from "react-native-gesture-handler";
 import FollowersScreen from "../FollowUnfollow/FollowersScreen";
 import FollowingScreen from "../FollowUnfollow/FollowingScreen";
+import MyStatusBar from "../../components/MyStatusBar";
 
-const Tab = createMaterialTopTabNavigator();
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { Default } from "../../constants/styles2";
+import { ACCENT_COLOR, PRIMARY_COLOR } from "../../constants/colors";
+import TextComp from "../../components/TextComp";
+import { Share } from "react-native";
+import { ActivityIndicator } from "react-native";
+import { AuthContext } from "../../context/AuthContext";
 
-const MyProfileScreen = () => {
+const HEADER_HEIGHT = 250;
+
+const DATA = [0];
+const identity = (v) => v + "";
+
+const Header = () => {
+  const navigation = useNavigation();
+
+  // console.log("userData", userData)
   
-  const theme = useContext(ThemeContext)
- 
-  const { t, i18n } = useTranslation();
+  const theme = useContext(ThemeContext);
+  
+  const { userInfo, userTokens } = useContext(AuthContext);
 
-  const isRtl = i18n.dir() == "rtl";
+  const user = userTokens;
+  
+  console.log("userInfo", userInfo)
 
-  function tr(key) {
-    return t(`profileScreen:${key}`);
-  }
+  const [isLoading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(false);
 
-  const CustomTabBar = ({ state, descriptors, navigation }) => {
-    return (
-      <View style={{ backgroundColor: theme.backgroundColor }}>
+  const isFocused = useIsFocused();
+
+  const onFetchProfile = async () => {
+    let token = user;
+    console.log("token ---------- ", token);
+    setLoading(true);
+    try {
+      let res = await myProifile(token);
+      console.log("response -------", res);
+      console.log("profile result -------", res.authenticated_user);
+      setProfile(res.authenticated_user);
+      // setLoading(false);
+    } catch (error) {
+      showError(error.message);
+      console.log("profile error -------", error);
+    }
+    setLoading(false);
+  };
+
+  console.log("count       ", profile.follower_count);
+  // useEffect(() => {
+  //   onFetchProfile();
+  // }, []);
+  useEffect(() => {
+    if (isFocused) {
+      // Reload your screen here
+      onFetchProfile();
+    }
+  }, [isFocused]);
+
+  //
+
+  const shareContent = async () => {
+    try {
+      const result = await Share.share({
+        message: "Check out this awesome post!",
+        url: "https://example.com/post/123", // Replace with your post's URL
+      });
+
+      if (result.action === Share.ActionType.SHARED) {
+        console.log("Shared successfully");
+      } else if (result.action === Share.ActionType.DISMISSED) {
+        console.log("Share dismissed");
+      }
+    } catch (error) {
+      console.error("Sharing error:", error);
+    }
+  };
+
+  return (
+    <>
+      <View
+        style={{
+          backgroundColor: theme.theme == "dark" ? "#000" : "#fff",
+        }}
+      >
+        <MyStatusBar />
         <View
           style={{
-            flexDirection: isRtl ? "row-reverse" : "row",
+            flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
             marginTop: Default.fixPadding * 1.2,
@@ -47,309 +122,323 @@ const MyProfileScreen = () => {
           <View></View>
 
           <TouchableOpacity
-            onPress={() => navigation.push("profileSettingsScreen")}
+            onPress={() =>
+              navigation.push("profileSettingsScreen", { profile: profile })
+            }
           >
             <Ionicons name="ellipsis-vertical" size={20} color={theme.color} />
           </TouchableOpacity>
         </View>
 
-        <View
-          style={{
-          }}
-        >
-          <Image
-            source={require("../../../assets/images/2.jpg")}
-            style={{
-              // flex: 3,
-              resizeMode: "cover",
-              alignSelf: "center",
-              width: 100,
-              height: 100,
-              borderRadius: 80,
-            }}
-          />
-
-          <View
-            style={{
-              // flex: 7,
-              alignItems: "center",
-              // alignItems: isRtl ? "flex-end" : "flex-start",
-              // marginLeft: isRtl ? 0 : Default.fixPadding * 2,
-              // marginRight: isRtl ? Default.fixPadding * 2 : 0,
-            }}
-          >
-            <Text style={{ ...Fonts.SemiBold16white, color: theme.color }}>Bessie Cooper</Text>
-            <Text
-              style={{
-                ...Fonts.Medium12grey,
-                marginTop: Default.fixPadding * 0.3,
-              }}
-            >
-              # Dance lover # food lovers
+        <View style={Container.safe}>
+          {profile.avatar == null ? (
+            <Image
+              style={UserImage.Image}
+              resizeMode="contain"
+              source={require("../../../assets/images/2.jpeg")}
+            />
+          ) : (
+            <Image
+              style={UserImage.Image}
+              resizeMode="contain"
+              source={{ uri: profile.avatar }}
+            />
+          )}
+          <View>
+            <Text style={[UserName.Text, { color: theme.color }]}>
+              @{profile.username}
+              {profile.is_premium ? (' verified') : ''}
             </Text>
-
-            <View
-              style={{
-                flexDirection: isRtl ? "row-reverse" : "row",
-                marginTop: Default.fixPadding * 2.5,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => navigation.push("FollowingScreen")}
-                style={{
-                  flex: 3.5,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginRight: isRtl ? 0 : Default.fixPadding,
-                  // marginLeft: isRtl ? Default.fixPadding : 0,
-                }}
-              >
-                <Text style={{ ...Fonts.SemiBold14white, color: theme.color }}>456</Text>
+            {/* {profile.is_premium ? (
+                <Ionicons name="ellipsis-vertical" size={20} color={theme.color} />
+              ) : (
+                <></>
+              )} */}
+          </View>
+          <View style={UserFollowers.View}>
+            <TouchableOpacity onPress={() => navigation.push("Following", {item: profile })}>
+              <View style={UserFollowersText.View}>
                 <Text
-                  numberOfLines={1}
-                  style={{
-                    ...Fonts.SemiBold14white,
-                    color: theme.color,
-                    overflow: "hidden",
-                    marginTop: Default.fixPadding * 0.5,
-                  }}
+                  style={[UserFollowersTextNumber.Text, { color: theme.color }]}
                 >
-                  {tr("following")}
+                  {profile.follower_count}
                 </Text>
-              </TouchableOpacity>
-              <View
-                style={{
-                  flex: 4,
-                  borderLeftWidth: 2,
-                  borderLeftColor: Colors.grey,
-                  borderRightWidth: 2,
-                  borderRightColor: Colors.grey,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => navigation.push("FollowersScreen")}
-                  style={{ justifyContent: "center", alignItems: "center" }}
-                >
-                  <Text style={{ ...Fonts.SemiBold14white, color:theme.color }}>36</Text>
                   <Text
-                    numberOfLines={1}
-                    style={{
-                      ...Fonts.SemiBold14white,
-                      color:theme.color ,
-                      overflow: "hidden",
-                      marginTop: Default.fixPadding * 0.5,
-                    }}
+                    style={[UserFollowersTextDesc.Text, { color: theme.color }]}
                   >
-                    {tr("followers")}
+                    Following
                   </Text>
-                </TouchableOpacity>
               </View>
-              <View
-                style={{
-                  flex: 2.5,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ ...Fonts.SemiBold14white, color:theme.color  }}>156</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.push("Followers", {item: profile })}>
+              <View style={UserFollowersText.View}>
                 <Text
-                  numberOfLines={1}
-                  style={{
-                    ...Fonts.SemiBold14white,
-                    color:theme.color ,
-                    overflow: "hidden",
-                    marginTop: Default.fixPadding * 0.5,
-                  }}
+                  style={[UserFollowersTextNumber.Text, { color: theme.color }]}
                 >
-                  {tr("post")}
+                  {profile.following_count ?? 0}
+                </Text>
+                <Text
+                  style={[UserFollowersTextDesc.Text, { color: theme.color }]}
+                >
+                  Followers
                 </Text>
               </View>
-            </View>
-
-            {/*  */}
-            <View 
-            style={[ 
-              
-              styles.flexRow, {
-              // marginHorizontal: WIDTH * 0.1,
-              marginHorizontal: Default.fixPadding * 2,
-            marginBottom: Default.fixPadding * 2,
-              marginTop: 20,}]}>
-              <AwesomeButton 
-              height={50}
-              // onPressOut={() => navigation.push("editProfileScreen")}
-              raiseLevel={1}
-              // stretch={true}
-                backgroundDarker={Colors.transparent}
-                backgroundColor={ACCENT_COLOR}
-                onPressOut={{}}>
-                <View style={ styles.buttonGreen}>
-                    <ShareSvg width= {20} stroke={"white"} />
-                  <Text style={{color: "white", fontSize: 20, fontWeight: "bold"}}>
-                    Share
-                  </Text>
-                </View>
-              </AwesomeButton>
-              <View style={{margin:8}}></View>
-              <AwesomeButton 
-                  height={50}
-                  onPressOut={() => navigation.push("editProfileScreen")}
-                  raiseLevel={1}
-                  // stretch={true}
-                  backgroundDarker={Colors.transparent}
-                  backgroundColor={PRIMARY_COLOR}>
-                <View  style={ styles.buttonOrange}>
-                  <EditSvg width= {20} stroke={"white"} />
-                  <Text style={{color: "#fff", fontWeight: "bold", paddingLeft: 5, fontSize: 20}}>
-                    Edit
-                  </Text>
-                </View>
-              </AwesomeButton>
+            </TouchableOpacity>
+            <View style={UserFollowersText.View}>
+              <Text
+                style={[UserFollowersTextNumber.Text, { color: theme.color }]}
+              >
+                {profile.post_count}
+              </Text>
+              <Text
+                style={[UserFollowersTextDesc.Text, { color: theme.color }]}
+              >
+                Posts
+              </Text>
             </View>
           </View>
-        </View>
-        
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
-            const label =
-              options.tabBarLabel !== undefined
-                ? options.tabBarLabel
-                : options.title !== undefined
-                ? options.title
-                : route.name;
-
-            const isFocused = state.index === index;
-
-            const onPress = () => {
-              const event = navigation.emit({
-                type: "tabPress",
-                target: route.key,
-              });
-
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
+          <View style={EditProfile.View}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.push("editProfileScreen", { profile: profile })
               }
-            };
-
-            const onLongPress = () => {
-              navigation.emit({
-                type: "tabLongPress",
-                target: route.key,
-              });
-            };
-
-            return (
-              <TouchableOpacity
-                key={index}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={options.tabBarAccessibilityLabel}
-                testID={options.tabBarTestID}
-                onPress={onPress}
-                onLongPress={onLongPress}
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  paddingBottom: Default.fixPadding * 0.8,
-                  borderBottomWidth: 2,
-                  borderBottomColor: isFocused
-                    ? Colors.primary
-                    : Colors.extraDarkGrey,
-                }}
-              >
-                <Text
-                  style={{
-                    ...(isFocused
-                      ? Fonts.SemiBold16primary
-                      : Fonts.SemiBold16grey),
-                  }}
-                >
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+              style={ButtonEditProfile.TouchableOpacity}
+            >
+              <Text>Edit profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={shareContent}
+              style={ButtonFavorites.TouchableOpacity}
+            >
+              <Fontisto name={"share-a"} size={20} color={"white"} />
+              <TextComp text="  Share" color={"#fff"} />
+            </TouchableOpacity>
+          </View>
+          {/* <TouchableOpacity>
+            <Text>Tap to add bio</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
-    );
-  };
+    </>
+  );
+};
 
-  const title1 = isRtl ? tr("post") : tr("followers");
-  const title2 = tr("following");
-  const title3 = isRtl ? tr("followers") : tr("post");
+const MyProfileScreen = () => {
+  const [selectedTab, setSelectedTab] = useState("Posts");
+
+  const theme = useContext(ThemeContext);
+
+  const data = [1, 2, 3, 4, 5]; // Sample data for FlatLists
+
+  const renderTabContent = () => {
+    // if (selectedTab === "Posts") {
+      return <VideoTab  />;
+    // } else if (selectedTab === "Followers") {
+    //   return <FollowersScreen isHeader={false} />;
+    // } else if (selectedTab === "Following") {
+    //   return <FollowingScreen />;
+    // }
+  };
 
   return (
     <>
-      <MyStatusBar />
-      <Tab.Navigator
-        tabBar={(props) => <CustomTabBar {...props} />}
-        initialRouteName="post"
-        screenOptions={{headerShown: false}}
+      <ScrollView
+        style={{
+          flex: 1,
+          backgroundColor: theme.theme != "dark" ? "white" : "black",
+        }}
       >
-        <Tab.Screen
-          name={isRtl ? "followers" : "post"}
-          component={!isRtl ? FollowersScreen : VideoTab}
-          options={{
-            title: title1,
-          }}
-          screenOptions={{headerShown: false}}
-        />
-        <Tab.Screen
-          name={"following"}
-          component={FollowingScreen}
-          options={{
-            title: title2,
-          }}
-        />
-        <Tab.Screen
-          name={isRtl ? "post" : "followers"}
-          component={!isRtl ? VideoTab : FollowersScreen}
-          options={{
-            title: title3,
-          }}
-        />
-      </Tab.Navigator>
+        <View style={{ flex: 1 }}>
+          <Header />
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              marginBottom: 10,
+            }}
+          >
+            <TouchableOpacity onPress={() => setSelectedTab("Posts")}>
+              <Text
+                style={{
+                  paddingHorizontal: 20,
+                  // color: selectedTab === "Posts" ? "blue" : "black",
+                  // backgroundColor:
+                  //   selectedTab === "Posts" ? PRIMARY_COLOR : "#ffffff00",
+                  paddingVertical: 10,
+                  fontFamily: "Bold"
+                }}
+              >
+                Posts
+              </Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity onPress={() => setSelectedTab("Followers")}>
+              <Text
+                style={{
+                  paddingHorizontal: 20,
+                  color: selectedTab === "Followers" ? "blue" : "black",
+                  backgroundColor:
+                    selectedTab === "Followers" ? PRIMARY_COLOR : "#ffffff00",
+                  paddingVertical: 10,
+                }}
+              >
+                Followers
+              </Text>
+            </TouchableOpacity> */}
+            {/* <TouchableOpacity onPress={() => setSelectedTab("Following")}>
+              <Text
+                style={{
+                  paddingHorizontal: 20,
+                  color: selectedTab === "Following" ? "blue" : "black",
+                  backgroundColor:
+                    selectedTab === "Following" ? PRIMARY_COLOR : "#ffffff00",
+                  paddingVertical: 10,
+                }}
+              >
+                Following
+              </Text>
+            </TouchableOpacity> */}
+          </View>
+
+          {/* Render the content of the selected tab */}
+          {renderTabContent()}
+        </View>
+      </ScrollView>
     </>
   );
 };
 
 export default MyProfileScreen;
 
-const styles = StyleSheet.create({
-  buttonGreen: {
-    flexDirection: "row",
-    // marginHorizontal: WIDTH * 0.35,
-    paddingHorizontal: WIDTH * 0.1,
-    paddingVertical: HEIGHT * 0.01,
+export const Container = StyleSheet.create({
+  safe: {
+    flex: 1,
     alignItems: "center",
-    borderRadius: 3,
-    borderWidth: 1.4,
-    borderColor: ACCENT_COLOR,
-
+    // backgroundColor: "#ccc",
   },
-  buttonOrange: {
-    flexDirection: "row",
-    backgroundColor: PRIMARY_COLOR,
-    paddingHorizontal: WIDTH * 0.1,
-    paddingVertical: HEIGHT * 0.01,
+});
+
+export const UserImage = StyleSheet.create({
+  Image: {
+    alignSelf: "center",
+    marginTop: 15,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
     alignItems: "center",
-    borderRadius: 3,
-    borderWidth: 1.4,
-    borderColor: PRIMARY_COLOR,
-
+    justifyContent: "center",
   },
-  flexRow: {
-    flexDirection: "row", 
-    alignItems: 'center', 
-    alignContent: "center", 
+});
+
+export const UserName = StyleSheet.create({
+  Text: {
+    marginTop: 20,
+    fontFamily: "Regular",
+    alignSelf: "center",
+  },
+});
+
+export const UserFollowers = StyleSheet.create({
+  View: {
+    marginTop: 20,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    
-  }
-})
+  },
+});
 
+export const UserFollowersText = StyleSheet.create({
+  View: {
+    width: WIDTH * 0.3,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+export const UserFollowersTextNumber = StyleSheet.create({
+  Text: {
+    color: "#010101",
+    fontFamily: "Bold",
+  },
+});
+
+export const UserFollowersTextDesc = StyleSheet.create({
+  Text: {
+    // marginTop: 10,
+    color: "#333",
+  },
+});
+
+export const EditProfile = StyleSheet.create({
+  View: {
+    // width: WIDTH * 0.1,
+    marginVertical: 20,
+    width: "100%",
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+export const ButtonEditProfile = StyleSheet.create({
+  TouchableOpacity: {
+    backgroundColor: ACCENT_COLOR,
+    borderRadius: 9,
+    width: WIDTH * 0.3,
+    height: 52,
+    marginLeft: 10,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    // border: solid 1 "#333",
+    padding: 15,
+  },
+});
+
+export const ButtonEditProfileText = StyleSheet.create({
+  Text: {
+    color: "#333",
+    fontFamily: "Regular",
+  },
+});
+
+export const ButtonFavorites = StyleSheet.create({
+  TouchableOpacity: {
+    backgroundColor: PRIMARY_COLOR,
+    marginRight: 10,
+    borderRadius: 9,
+    marginLeft: 10,
+    flex: 1,
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    // border: solid 1 #333,
+    padding: 15,
+  },
+});
+
+export const ButtonAddBio = StyleSheet.create({
+  TouchableOpacity: {
+    marginLeft: 10,
+    flex: 1,
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 15,
+  },
+});
+
+export const ButtonAddBioText = StyleSheet.create({
+  Text: {
+    color: "#333",
+    fontFamily: "Regular",
+  },
+});

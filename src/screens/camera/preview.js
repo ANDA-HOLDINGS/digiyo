@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext,   } from 'react'
 import styles from './style'
 import { HEIGHT, WIDTH } from '../../constants/sizes'
 import ThemeContext from '../../theme/ThemeContext'
@@ -11,8 +11,8 @@ const SelectedPreview = ({ imageUrl, videoUrl, isVid, cancel, handlePost }) => {
 
     const bg = theme.theme == "dark" ? "black" : "white"
     const bar = theme.theme == "dark" ? "dark-content" : "light-content"
-    const txtCol = theme.theme == "dark" ? "white" : "black"
-    // const [vid, setIsVid ] = useState(false)
+    const txtCol = theme.theme == "dark" ? "white" : "black" 
+
   return (
     <>
         <StatusBar barStyle={bar} />
@@ -50,7 +50,7 @@ const SelectedPreview = ({ imageUrl, videoUrl, isVid, cancel, handlePost }) => {
                         top: HEIGHT *0.15,
                         alignSelf: "center",
                     }]}>
-                <Text style={{ fontWeight: "bold", fontSize: 20, color: theme.color }}>Title</Text>
+                <Text style={{ fontFamily: "Bold", fontSize: 20, color: theme.color }}>Title</Text>
                 <View 
                     >
                     <TextInput
@@ -77,7 +77,7 @@ const SelectedPreview = ({ imageUrl, videoUrl, isVid, cancel, handlePost }) => {
                         top: HEIGHT *0.15,
                         alignSelf: "center",
                     }]}>
-                <Text style={{ fontWeight: "bold", fontSize: 20, color: theme.color }}>Description</Text>
+                <Text style={{ fontFamily: "Bold", fontSize: 20, color: theme.color }}>Description</Text>
                 <View 
                     >
                     <TextInput

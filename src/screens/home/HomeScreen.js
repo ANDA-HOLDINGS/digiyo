@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderComp from '../../components/home/Header';
 import SideIconsComp from '../../components/home/SideIcons';
 import Posts from '../../components/home/Posts';
-import BottomSheets from '../../components/BottomSheets';
+// import BottomSheets from '../../components/BottomSheets';
 import { Gesture,  GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BACKDROP_COLOR, } from '../../constants/colors';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { HEIGHT, OVERDRAG, } from '../../constants/sizes';
 import ThemeContext from '../../theme/ThemeContext';
-import CommentsBottomSheet from '../../components/commentsBottomSheet';
+// import CommentsBottomSheet from '../../components/commentbottomsheet/commentsBottomSheet';
 // import ThemeContext from '../../theme/ThemeContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -45,16 +45,13 @@ const HomeScreen = () => {
 
               <View style={{ flex: 1, }}>
                 <View>
-                  <Posts toggleSheet={toggleSheet} />
+                  <Posts />
                 </View>
               {/* side icons */}
                 <SideIconsComp />
                 { openCommentBottomSheet && (
                   <>
-                  <CommentsBottomSheet
-                    visible={openCommentBottomSheet}
-                    closeCommentBottomSheet={() => setOpenCommentBottomSheet(false)}
-                  />
+                  
                   {/* <AnimatedPressable 
                     style={styles.backdrop} onPress={toggleSheet} 
                     entering={FadeIn}
@@ -70,7 +67,8 @@ const HomeScreen = () => {
                       >
                             <BottomSheets />
                       </Animated.View> */}
-                  
+                
+                
                   
                   </>
                 )

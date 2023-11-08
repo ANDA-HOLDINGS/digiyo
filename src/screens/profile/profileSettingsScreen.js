@@ -20,11 +20,23 @@ import MyStatusBar from "../../components/MyStatusBar";
 import ThemeContext from "../../theme/ThemeContext";
 import { EventRegister } from "react-native-event-listeners";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HEIGHT } from "../../constants/sizes";
+import { HEIGHT } from "../../constants/sizes";  
+import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "../../context/AuthContext";
+import FoundersClubSuccessModal from "../../components/foundersClubSuccessModal";
 // import MyStatusBar from "../components/myStatusBar";
 
-const ProfileSettingsScreen = ({ navigation }) => {
+
+const ProfileSettingsScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
+
+  const { profile } = route.params
+
+  const { logout } = useContext(AuthContext)
+
+  console.log("route des",profile.is_premium)
+
+  const navigate = useNavigation()
 
   const isRtl = i18n.dir() == "rtl";
 
@@ -74,6 +86,8 @@ const ProfileSettingsScreen = ({ navigation }) => {
 
   const [openRateModal, setOpenRateModal] = useState(false);
 
+  const [openFoundersModal, setOpenFoundersModal] = useState(false);
+
   const profileSettingList = [
     {
       key: "1",
@@ -82,13 +96,13 @@ const ProfileSettingsScreen = ({ navigation }) => {
     },
     {
       key: "2",
-      title: tr("language"),
-      navigateTo: "languageScreen",
+      title: "Edit Bio",
+      navigateTo: "editProfileBioScreen",
     },
-    {
-      key: "3",
-      title: tr("shareProfile"),
-    },
+    // {
+    //   key: "3",
+    //   title: "Edit bio",
+    // },
     {
       key: "4",
       title: tr("blockList"),
@@ -96,8 +110,8 @@ const ProfileSettingsScreen = ({ navigation }) => {
     },
     {
       key: "5",
-      title: tr("whoPost"),
-      navigateTo: "whoCanSeeYourPostScreen",
+      title: "Join Founders Club",
+      navigateTo: "joinFoundersPaymentScreen",
     },
     {
       key: "6",
@@ -112,7 +126,8 @@ const ProfileSettingsScreen = ({ navigation }) => {
 
   const renderItem = ({ item, index }) => {
     const firstItem = index === 0;
-
+    const email = profile.email
+    console.log("i want email", )
     return (
       <View
         style={{
@@ -123,11 +138,22 @@ const ProfileSettingsScreen = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => {
             if (index == 2) {
-              return shareMessage();
-            } else if (index === profileSettingList.length - 2) {
+              // return shareMessage();
+              navigation.navigate(item.navigateTo, {profile: profile});
+            } 
+            if (index == 3) {
+              // return shareMessage();
+              if (profile.is_premium) {
+                setOpenFoundersModal(true)
+              } else {
+                navigation.navigate(item.navigateTo, {item: email});
+              }
+            } 
+            else
+             if (index === profileSettingList.length - 2) {
               return setOpenRateModal(true);
             } else {
-              navigation.navigate(item.navigateTo);
+              navigation.navigate(item.navigateTo, {profile: profile});
             }
           }}
           style={{
@@ -230,15 +256,25 @@ const ProfileSettingsScreen = ({ navigation }) => {
       <LogoutModal
         visible={openLogoutModal}
         logoutModalClose={() => setOpenLogoutModal(false)}
-        logoutClickHandler={() => {
-          setOpenLogoutModal(false);
-          navigation.navigate("signInScreen");
-        }}
+        logoutClickHandler={ () => logout()
+        //   async () => {
+        //   setOpenLogoutModal(false);
+        //   await AsyncStorage.removeItem('userData').then((res) => {
+        //     dispatch(saveUserData())
+        //   })
+        //   console.log(userId)
+        //   navigate.replace("LoginScreen");
+        // }
+      }
       />
 
       <RateModal
         visible={openRateModal}
         rateModalClose={() => setOpenRateModal(false)}
+      />
+      <FoundersClubSuccessModal
+        visible={openFoundersModal}
+        rateModalClose={() => setOpenFoundersModal(false)}
       />
     </View>
   );
