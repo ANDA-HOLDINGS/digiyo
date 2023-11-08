@@ -50,6 +50,8 @@ const CommentsBottomSheet = (props) => {
   const [reply, setReply] = useState(false);
   const [viewReply, setViewReply] = useState(false);
 
+  
+
   const onSelectItem = (item) => {
     const newItem = commentsData.map((val) => {
       if (val.comment.comment_id === item.comment.comment_id) {
@@ -123,14 +125,40 @@ const CommentsBottomSheet = (props) => {
   //     ]
   //   },
   // ]
+  const onFetchLikes = async (comment_id) => {
+    const config = {
+      method: "get",
+      url: GET_POSTS_COMMENTS + "comment" + "/likes/" + comment_id,
+      // data: formdata,
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/json",
+      },
+    };
+    // console.log( "----------woahhhh",config);
+
+    try {
+      // setLoading(true);
+      await axios(config)
+        .then((response) => {
+          // console.log("fetched comment", response.data);
+          // setLoading(false)
+          setCommentsData(response.data);
+        })
+        .catch((error) => {});
+    } catch (error) {
+      // setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    onFetchLikes()
+  }, [])
 
   
   const [commentsData, setCommentsData] = useState([]);
   const [commentUser, setCommentUser] = useState();
-  // const [commentsData, setCommentsData] = useState(commentsList);
-  // const data = commentsData.map((data) => data)
-  // console.log("repliesssss  ------ 2", data )
-
+  
   const onLikeComment = async (comment_id) => { 
     console.log("like comment", comment_id)
     const config = {
