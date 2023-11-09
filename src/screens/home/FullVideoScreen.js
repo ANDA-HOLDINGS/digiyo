@@ -155,12 +155,12 @@ const FullVideoScreen = ({ navigation, route }) => {
       try {
         const result = await Share.share({ 
           message: 'Check out this awesome post!',
-          url: 'https://example.com/post/123', // Replace with your post's URL
+          url: `https://digiyo.com/posts/${postId}`, // Replace with your post's URL
         });
     
-        if (result.action === Share.ActionType.SHARED) {
+        if (result.action === Share.ActionType?.SHARED) {
           console.log('Shared successfully');
-        } else if (result.action === Share.ActionType.DISMISSED) {
+        } else if (result.action === Share.ActionType?.DISMISSED) {
           console.log('Share dismissed');
         }
       } catch (error) {
