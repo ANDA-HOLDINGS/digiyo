@@ -2,64 +2,70 @@ import {
     DarkTheme,
     DefaultTheme,
     NavigationContainer,
-  } from "@react-navigation/native";
-  import { createNativeStackNavigator } from "@react-navigation/native-stack";
-  import React, { useContext, useEffect, useState } from "react";
-  import HomeScreen from "../screens/home/HomeScreen";
-  // import { FontAwesome, Feather, Ionicons } from '@expo/vector-icons'
-  import FullVideoScreen from "../screens/home/FullVideoScreen";
-  import { Image, StyleSheet } from "react-native";
-  import FollowersScreen from "../screens/FollowUnfollow/FollowersScreen";
-  import FollowingScreen from "../screens/FollowUnfollow/FollowingScreen";
-  import MyProfileScreen from "../screens/profile/MyProfileScreen";
-  import { EventRegister } from "react-native-event-listeners";
-  import ThemeContext from "../theme/ThemeContext";
-  import theme from "../theme/theme";
-  import { View } from "react-native";
-  import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-  import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-  
-  import UploadSvg from "../../assets/icons/upload.svg";
-  import HomeSvg from "../../assets/icons/home1.svg";
-  import { HEIGHT } from "../constants/sizes";
-  import CameraScreen from "../screens/camera";
-  import AsyncStorage from "@react-native-async-storage/async-storage";
-  import LoginScreen from "../screens/auth/LoginScreen";
-  import SignupScreen from "../screens/auth/SignupScreen";
-  import ForgotPassworScreen from "../screens/auth/ForgotPassword";
-  import OTPScreen from "../screens/auth/OTP";
-  import FoundersScreen from "../screens/auth/Founders";
-  import NewPasswordScreen from "../screens/auth/NewPassword";
-  import MessageUserScreen from "../screens/messageUserScreen/MessageUserScreen";
-  import SearchScreen from "../screens/search/SearchScreen";
-  import Inbox from "../screens/Inbox";
-  import EditProfileScreen from "../screens/profile/EditProfileScreen";
-  import ProfileSettingsScreen from "../screens/profile/profileSettingsScreen";
-  import OtherUserProfileScreen from "../screens/otherUserPropfile/otherUserProfileScreen"; 
-  import MessagesScreen from "../screens/messages";
-  import Conversations from "../components/Conversations";
-  import UserProfilePostScreen from "../screens/userProfilePostScreen/UserProfilePostScreen";
-  import { myProifile } from "../redux/actions/auth";
-  import { showError } from "../utils/helperFunctions";
-  // import AltProfile from "../screens/profile/altProfile";
-  import { PRIMARY_COLOR } from "../constants/colors";
-  import EditProfileBioScreen from "../screens/profile/EditProfileBioScreen";
-  import SearchSeeAllUsersScreen from "../screens/search/searchSeeAllUsersScreen";
-  import SearchSeeAllPostScreen from "../screens/search/searchSeeAllPostScreen";
-  import BlockListScreen from "../screens/profile/BlockedList";
+} from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React, { useContext, useEffect, useState } from "react";
+import HomeScreen from "../screens/home/HomeScreen";
+// import { FontAwesome, Feather, Ionicons } from '@expo/vector-icons'
+import FullVideoScreen from "../screens/home/FullVideoScreen";
+import { Image, StyleSheet } from "react-native";
+import FollowersScreen from "../screens/FollowUnfollow/FollowersScreen";
+import FollowingScreen from "../screens/FollowUnfollow/FollowingScreen";
+import MyProfileScreen from "../screens/profile/MyProfileScreen";
+import { EventRegister } from "react-native-event-listeners";
+import ThemeContext from "../theme/ThemeContext";
+import theme from "../theme/theme";
+import { View } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+
+import UploadSvg from "../../assets/icons/upload.svg";
+import HomeSvg from "../../assets/icons/home1.svg";
+import { HEIGHT } from "../constants/sizes";
+import CameraScreen from "../screens/camera";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoginScreen from "../screens/auth/LoginScreen";
+import SignupScreen from "../screens/auth/SignupScreen";
+import ForgotPassworScreen from "../screens/auth/ForgotPassword";
+import OTPScreen from "../screens/auth/OTP";
+import FoundersScreen from "../screens/auth/Founders";
+import NewPasswordScreen from "../screens/auth/NewPassword";
+import MessageUserScreen from "../screens/messageUserScreen/MessageUserScreen";
+import SearchScreen from "../screens/search/SearchScreen";
+import Inbox from "../screens/Inbox";
+import EditProfileScreen from "../screens/profile/EditProfileScreen";
+import ProfileSettingsScreen from "../screens/profile/profileSettingsScreen";
+import OtherUserProfileScreen from "../screens/otherUserPropfile/otherUserProfileScreen"; 
+import MessagesScreen from "../screens/messages";
+import Conversations from "../components/Conversations";
+import UserProfilePostScreen from "../screens/userProfilePostScreen/UserProfilePostScreen";
+import { myProifile } from "../redux/actions/auth";
+import { showError } from "../utils/helperFunctions";
+// import AltProfile from "../screens/profile/altProfile";
+import { PRIMARY_COLOR } from "../constants/colors";
+import EditProfileBioScreen from "../screens/profile/EditProfileBioScreen";
+import SearchSeeAllUsersScreen from "../screens/search/searchSeeAllUsersScreen";
+import SearchSeeAllPostScreen from "../screens/search/searchSeeAllPostScreen";
+import BlockListScreen from "../screens/profile/BlockedList";
 import { AuthContext } from "../context/AuthContext";
 import { ActivityIndicator } from "react-native";
 import JoinFoundersPaymentScreen from "../screens/foundersclubscreen/JoinFoundersClubPayment/joinFoundersPaymentScreen";
 import Followers from "../screens/FollowUnfollow/Followers";
 import Following from "../screens/FollowUnfollow/Following";
-  
-  // const Stack = createNativeStackNavigator();
-  const Tab = createBottomTabNavigator();
-  const ScreenTabs = createNativeStackNavigator();
+import socketIoClient from 'socket.io-client';
+import { API_BASE_URL } from "../config/urls";
+import { WebSocketContext } from "../context/webSockets.context";
+// const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+const ScreenTabs = createNativeStackNavigator();
+
+const socket = socketIoClient(API_BASE_URL, {
+  transports: ['websocket']
+});
 
 export const AppNav = () => {
     const [darkMode, setDarkMode] = useState(false);
-
+    const [socketValue, setSocketValue] = useContext(WebSocketContext)
     const { isLoading, userTokens } = useContext(AuthContext)
     
   useEffect(() => {
@@ -74,6 +80,12 @@ export const AppNav = () => {
         console.error("Error loading dark mode:", error);
       }
     };
+
+    socket.on('connection', () => {
+      console.log('Connected to Socket.IO server', socket.id, socket.connected);
+    });
+    console.log('test=>', userTokens)
+    // socket.emit('join', {userId: userData?._id, type: "User"});
 
     loadDarkMode();
   }, []);
@@ -90,9 +102,9 @@ export const AppNav = () => {
   
 if (isLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator />
-            </View>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator />
+          </View>
         )
     }
 
