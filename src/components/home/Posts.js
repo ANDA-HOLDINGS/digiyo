@@ -21,17 +21,16 @@ import { AuthContext } from "../../context/AuthContext";
 // import * as Sharing from 'expo-sharing'
 
 const Posts = ({}) => {
-
   const theme = useContext(ThemeContext);
 
   const { userInfo, userTokens } = useContext(AuthContext);
 
   const navigation = useNavigation();
 
-  const user = userTokens
+  const user = userTokens;
 
-  const userId = userInfo.authenticated_user.user_id
- 
+  const userId = userInfo.authenticated_user.user_id;
+
   const [isLoading, setLoading] = useState(false);
   const [post, setPost] = useState();
   const [postId, getPostId] = useState();
@@ -85,23 +84,22 @@ const Posts = ({}) => {
 
   const onFetchPosts = async () => {
     let token = user.token;
-    try { 
+    try {
       setLoading(true);
       let res = await getAllPosts(token);
       setPost(res.data);
-      setLikeStates(res.data.map((likes) => likes.user_has_liked)); 
-      setVisibleVideos(res.data.map(() => true)); 
+      setLikeStates(res.data.map((likes) => likes.user_has_liked));
+      setVisibleVideos(res.data.map(() => true));
       setLikes(res.data.map((item) => item.totalLikes));
       setSaves(res.data.map((item) => item.totalSaves));
       setLoading(false);
-      getPostId(res.data.map((postId) => postId.post_id))
-    } catch (error) { 
+      getPostId(res.data.map((postId) => postId.post_id));
+    } catch (error) {
       showError(error.message);
       setLoading(false);
     }
   };
 
-  
   // const getPostId = post.map((post) => post.post_id)
   // console.log("check the post",postId)
 
@@ -121,13 +119,13 @@ const Posts = ({}) => {
   //     setLoading(true);
   //     // let res = getUserPosts(auth,  userId)
   //     await axios(config)
-  //       .then((response) => { 
+  //       .then((response) => {
   //         // setPost(response.data.data);
   //         console.log(" are there likes ??????",response.data);
   //       })
   //       .catch((error) => {
   //         console.log("likes error 1111111111111", error);
-  //       }); 
+  //       });
 
   //     // console.log("---------",res)
   //     setLoading(false);
@@ -140,11 +138,10 @@ const Posts = ({}) => {
 
   useEffect(() => {
     // if (isFocused) {
-      // onGetLikes()
-      onFetchPosts(); 
+    // onGetLikes()
+    onFetchPosts();
     // }
   }, []);
-
 
   // useEffect(() => {
   //   if (isFocused) {
@@ -155,23 +152,22 @@ const Posts = ({}) => {
   const shareContent = async () => {
     try {
       const result = await Share.share({
-        message: 'Check out this awesome post!',
-        url: 'https://example.com/post/123', // Replace with your post's URL
+        message: "Check out this awesome post!",
+        url: "https://example.com/post/123", // Replace with your post's URL
       });
-  
+
       if (result.action === Share.ActionType.SHARED) {
-        console.log('Shared successfully');
+        console.log("Shared successfully");
       } else if (result.action === Share.ActionType.DISMISSED) {
-        console.log('Share dismissed');
+        console.log("Share dismissed");
       }
     } catch (error) {
-      console.error('Sharing error:', error);
+      console.error("Sharing error:", error);
     }
   };
-   
 
   const toggleLike = async (index) => {
-    console.log("like")
+    console.log("like");
     let token = user;
     const newLikeStates = [...likeStates];
     newLikeStates[index] = !newLikeStates[index];
@@ -193,31 +189,29 @@ const Posts = ({}) => {
         "Content-Type": "application/json", // This will set the correct 'Content-Type' header
       },
     };
-    console.log(config) 
-    try { 
+    console.log(config);
+    try {
       // setLoading(true);
       // let res = getUserPosts(auth,  userId)
-       await axios(config)
-        .then((response) => { 
+      await axios(config)
+        .then((response) => {
           // setPost(response.data.data);
-          console.log(" liked ??????",response.data);
+          console.log(" liked ??????", response.data);
         })
         .catch((error) => {
           console.log("likes error 1111111111111", error);
-        }); 
- 
+        });
+
       // console.log("---------",res)
       // setLoading(false);
     } catch (error) {
       console.log(error);
     }
-
   };
 
   const toggleUnLike = async (index) => {
-    
     let token = user;
-    console.log("unlike")
+    console.log("unlike");
     const newLikeStates = [...likeStates];
     newLikeStates[index] = !newLikeStates[index];
     setLikeStates(newLikeStates);
@@ -230,10 +224,10 @@ const Posts = ({}) => {
     }
     setLikes(newLikes);
     // setLoading(true);
-    
-    const config = { 
-      method: "delete", 
-      url: CREATE_POSTS + "/" + postId[index] +"/like",
+
+    const config = {
+      method: "delete",
+      url: CREATE_POSTS + "/" + postId[index] + "/like",
       // data: formdata,
       headers: {
         Authorization: token,
@@ -243,13 +237,13 @@ const Posts = ({}) => {
     try {
       // let res = getUserPosts(auth,  userId)
       await axios(config)
-        .then((response) => { 
+        .then((response) => {
           // setPost(response.data.data);
-          console.log(" unlikeded ??????",response.data);
+          console.log(" unlikeded ??????", response.data);
         })
         .catch((error) => {
           console.log("likeds error 1111111111111", error);
-        }); 
+        });
 
       // console.log("---------",res)
     } catch (error) {
@@ -260,7 +254,7 @@ const Posts = ({}) => {
 
   const toggleSave = (index) => {
     const newSavedState = [...savedStates];
-    newSavedState[index] = !newSavedState[index]; 
+    newSavedState[index] = !newSavedState[index];
     setSavedStates(newSavedState);
 
     const newSaves = [...saved];
@@ -334,24 +328,19 @@ const Posts = ({}) => {
                     })
                   }
                 >
-                  <View
-                    key={item.post_id}
-                    style={{}}
-                  >
+                  <View key={item.post_id} style={{}}>
                     <Pressable
                       onPress={() => {
                         // console.log(item.author.user_id, userId)
-                        if (
-                          item.author.user_id ===  
-                          userId) {  
-                          navigation.navigate("MyProfileScreen")
+                        if (item.author.user_id === userId) {
+                          navigation.navigate("MyProfileScreen");
                         } else {
-                          navigation.navigate("otherUserProfileScreen" , { item: item } )
+                          navigation.navigate("otherUserProfileScreen", {
+                            item: item,
+                          });
                         }
-                       }
-                      }
-                      style={{ marginBottom: 10,
-                          zIndex: 1 }}
+                      }}
+                      style={{ marginBottom: 10, zIndex: 1 }}
                     >
                       <View
                         style={{
@@ -361,7 +350,7 @@ const Posts = ({}) => {
                           marginTop: 20,
                           flexDirection: "row",
                           alignContent: "center",
-                        }} 
+                        }}
                       >
                         {item.author.avatar == null ? (
                           <FontAwesome
@@ -394,7 +383,7 @@ const Posts = ({}) => {
                               fontFamily: "SemiBold",
                               fontSize: 20,
                               color: "#fff",
-                            }} 
+                            }}
                           >
                             {item.author.username}
                           </Text>
@@ -447,16 +436,16 @@ const Posts = ({}) => {
                     <View style={{ marginBottom: 20 }}>
                       <BottomIcons
                         likeLink={() => {
-                          console.log("has liseds ",item)
+                          console.log("has liseds ", item);
                           if (likeStates[index] == true) {
-                            toggleUnLike(index) 
-                          } else { 
-                            toggleLike(index)   
-                          } 
-                          }}
+                            toggleUnLike(index);
+                          } else {
+                            toggleLike(index);
+                          }
+                        }}
                         // likeColor={item.user_has_liked == true  ? "red" : "none"}
-                        likeName={  
-                          !likeStates[index] 
+                        likeName={
+                          !likeStates[index]
                             ? require("../../../assets/icons/heart.png")
                             : require("../../../assets/icons/heart-fill.png")
                         }
@@ -472,7 +461,7 @@ const Posts = ({}) => {
                         save={saved[index]}
                         saveColor={savedStates[index] ? "blue" : "#000"}
                         shareLink={shareContent}
-                      /> 
+                      />
                     </View>
                     <View
                       style={{
@@ -485,13 +474,13 @@ const Posts = ({}) => {
               </>
             );
           }}
-          />
-          )}
-          <CommentsBottomSheet
-            post_id={openedPostId}
-            visible={openCommentBottomSheet} 
-            closeCommentBottomSheet={() => setOpenCommentBottomSheet(false)}
-          />
+        />
+      )}
+      <CommentsBottomSheet
+        post_id={openedPostId}
+        visible={openCommentBottomSheet}
+        closeCommentBottomSheet={() => setOpenCommentBottomSheet(false)}
+      />
     </View>
   );
 };

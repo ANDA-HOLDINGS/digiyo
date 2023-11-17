@@ -167,7 +167,7 @@ export default function SignupScreen() {
 
               {/* form */}
               <View style={{ flex: 1, alignItems: "center" }}>
-                <View style={{ alignItems: "center" }}>
+                <View style={{ alignItems: "center", marginBottom: 10 }}>
                   <Animated.Text
                     entering={FadeInUp.duration(1000).springify()}
                     style={{ color: "white", fontFamily: "Bold", fontSize: 20 }}
@@ -216,7 +216,10 @@ export default function SignupScreen() {
                 </Animated.View>
 
                 <Animated.View
-                  style={[styles.input, { backgroundColor: PRIMARY_COLOR }]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: PRIMARY_COLOR, marginTop: 20 },
+                  ]}
                   entering={FadeInDown.delay(400).duration(1000).springify()}
                 >
                   {isLoading ? (
@@ -247,7 +250,7 @@ export default function SignupScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 18 }}>or sign in</Text>
+                  <Text style={{ fontSize: 18 }}>or sign up</Text>
                 </Animated.View>
 
                 {/* Auth Boxes */}
